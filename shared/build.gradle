@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    maven {
+        // url = "http://maven.weoa.com/nexus/content/groups/public/"
+        url = "https://mirrors.huaweicloud.com/repository/maven/"
+        allowInsecureProtocol = true
+    }
+}
+
+dependencies {
+}
+
+test {
+    useJUnitPlatform()
+}

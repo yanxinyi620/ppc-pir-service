@@ -1,0 +1,114 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    maven {
+        // url = "http://maven.weoa.com/nexus/content/groups/public/"
+        url = "https://mirrors.huaweicloud.com/repository/maven/"
+        allowInsecureProtocol = true
+    }
+}
+
+dependencies {
+    implementation project(':crypto')
+    implementation project(':shared')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "src/main/java"
+        }
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+    test {
+        java {
+            srcDir "src/test/java"
+        }
+        resources {
+            srcDir "src/test/resources"
+        }
+    }
+}
+
+processResources {
+    duplicatesStrategy = 'exclude'
+     // exclude '**/*.xml', '**/*.properties', '**/*.pem'
+    exclude '**/*.xml'
+}
+
+processTestResources {
+    duplicatesStrategy = 'exclude'
+    //    exclude '**/*.xml', '**/*.properties', '**/*.pem'
+    exclude '**/*.xml'
+}
+
+jar {
+    // 将shared模块的源码和资源文件打包进jar中
+    from project(':crypto').sourceSets.main.output
+    from project(':crypto').sourceSets.main.resources
+    from project(':shared').sourceSets.main.output
+    from project(':shared').sourceSets.main.resources
+    // 不包含test源码和资源文件
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', '**/Test*.*', '**/*Test.*'
+    // 不包含crypto模块的编译产物，避免重复
+    exclude 'cn/webank/wedpr/crypto/**'
+    exclude 'cn/webank/wedpr/shared/**'
+    with {
+        destinationDirectory = file('dist/apps')
+        archiveFileName = "ppcs-" + project.name + "-" + version + ".jar"
+        excludes = ['**/*.xml', '**/*.properties', '**/*.pem']
+        // excludes = ['**/*.xml']
+    }
+
+    manifest {
+        try {
+            def repo = grgit.open(currentDir: project.rootDir)
+            if (repo != null) {
+                def date = new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                def branch = repo.branch.getCurrent().getName()
+                def commit = repo.head().getAbbreviatedId(40)
+
+                attributes(["Implementation-Timestamp": date,
+                            "Git-Branch"              : branch,
+                            "Git-Commit"              : commit
+                ])
+
+                logger.info("  Commit : ")
+                logger.info("  => date: {}", date)
+                logger.info("  => branch: {}", branch)
+                logger.info("  => commit: {}", commit)
+            }
+        } catch (Exception e) {
+            logger.warn(' .git not exist, cannot found commit info, currentDir : {}, e: {}', project.rootDir, e)
+        }
+    } from sourceSets.main.output
+
+    doLast {
+        copy {
+            from 'src/main/resources'
+            into 'dist/conf'
+        }
+        copy {
+            from configurations.runtimeClasspath
+            into 'dist/lib'
+        }
+        copy {
+            from 'script'
+            include '*.bat', '*.sh', '*.env', '*.py'
+            into 'dist'
+        }
+        copy {
+            from '.'
+            include '*.bat', '*.sh', '*.env', '*.py'
+            into 'dist'
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

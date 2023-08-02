@@ -1,0 +1,2 @@
+rootProject.name = 'pir'
+include 'http', 'crypto', 'shared'

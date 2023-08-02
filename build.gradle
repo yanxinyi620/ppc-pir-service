@@ -1,0 +1,132 @@
+subprojects {
+    apply plugin: 'idea'
+    apply plugin: 'java'
+
+    repositories {
+        maven {
+            // url = "http://maven.weoa.com/nexus/content/groups/public/"
+            url = "https://mirrors.huaweicloud.com/repository/maven/"
+            allowInsecureProtocol = true
+        }
+    }
+
+    // configurations {
+    //     compileClasspath {
+    //         extendsFrom configurations.annotationProcessor
+    //     }
+
+    //     all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    // }
+
+    group 'cn.webank.wedpr'
+    version '2.0.1'
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter-web:2.7.12'
+        implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.7.11'
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.0'
+        implementation 'mysql:mysql-connector-java:8.0.30'
+        implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.19.0'
+        implementation 'commons-codec:commons-codec:1.15'
+        implementation 'com.squareup.okhttp3:okhttp:4.9.1'
+
+        // 达梦数据库依赖
+        implementation 'com.dameng:DmJdbcDriver18:8.1.2.192'
+        implementation 'com.dameng:DmDialect-for-hibernate5.0:8.1.2.192'
+        implementation 'org.hibernate:hibernate-core:5.3.18.Final'
+
+        compileOnly 'org.projectlombok:lombok:1.18.24'
+        annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    }
+
+    configurations.all {
+        exclude group: "org.springframework.boot", module: "spring-boot-starter-logging"
+        exclude group: "org.slf4j", module: "slf4j-log4j12"
+    }
+
+    // configurations.all {
+    //     exclude module: 'slf4j-log4j12'
+    // }
+
+    sourceSets {
+        main {
+            resources {
+            }
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+
+    // task cleanBuildDir(type: Delete) {
+    //     delete "${projectDir}/build"
+    //     delete "${projectDir}/dist"
+    //     delete "${projectDir}/out"
+    // }
+
+    // jar {
+    //     with {
+    //         destinationDirectory = file('dist/apps')
+    //         archiveFileName = "pir-" + project.name + "-" + version + ".jar"
+    //     }
+
+    //     doLast {
+    //         copy {
+    //             from 'src/main/resources'
+    //             into 'dist/conf'
+    //         }
+    //         copy {
+    //             from configurations.runtimeClasspath
+    //             into 'dist/lib'
+    //         }
+    //         copy {
+    //             from 'script'
+    //             include '*.bat', '*.sh', '*.env', '*.py'
+    //             into 'dist'
+    //         }
+    //         copy {
+    //             from '.'
+    //             include '*.bat', '*.sh', '*.env', '*.py'
+    //             into 'dist'
+    //         }
+    //     }
+    // }
+
+    jar {
+        destinationDir file('dist/app')
+        archiveName project.name + "-" + project.version + '.jar'
+        exclude '**/*.xml'
+        exclude '**/*.toml'
+        exclude '**/*.properties'
+        exclude '**/*.yml'
+        exclude '**/*.crt'
+        exclude '**/*.key'
+        exclude '**/*.sql'
+        exclude '**/*.pem'
+
+        doLast {
+            copy {
+                from file('src/main/resources/')
+                into 'dist/conf'
+            }
+            copy {
+                from configurations.runtimeClasspath
+                into 'dist/libs'
+            }
+            copy {
+                from file('.').listFiles().findAll { File f -> (f.name.endsWith('.sh') || f.name.endsWith('.env')) }
+                into 'dist'
+            }
+            copy {
+                from file('script/')
+                into 'dist'
+            }
+        }
+    }
+
+
+    test {
+        testLogging.showStandardStreams = true
+    }
+}
