@@ -1,7 +1,9 @@
 package cn.webank.wedpr.http.message;
 
-// import cn.webank.wedpr.http.message.body.ServerResultBody;
-import java.util.List;
+// import cn.webank.wedpr.pir.message.ServerResultlist;
+import cn.webank.wedpr.pir.message.ServerOTResponse;
+
+// import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -10,10 +12,11 @@ import lombok.EqualsAndHashCode;
 public class SimpleEntity extends BaseResponse {
     int code;
     String message;
-    ResponseData data;
+    // ResponseData data;
+    ServerOTResponse data;
 
-    @Data
-    public class ResponseData {
-        List<ServerResultlist> list;
-    }
+    // @Data
+    // public class ResponseData {
+    //     List<ServerResultlist> list;
+    // }
 }

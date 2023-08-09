@@ -37,6 +37,11 @@ subprojects {
 
         compileOnly 'org.projectlombok:lombok:1.18.24'
         annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+        // Use JUnit test framework
+        testImplementation 'junit:junit:4.13'
+        testImplementation 'org.mockito:mockito-core:3.0.0'
+        testImplementation "org.springframework.boot:spring-boot-starter-test:2.7.12"
     }
 
     configurations.all {

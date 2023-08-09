@@ -1,7 +1,8 @@
 package cn.webank.wedpr.http.message;
 
-import cn.webank.wedpr.http.message.body.PirResultBody;
-import java.util.List;
+// import cn.webank.wedpr.pir.message.body.PirResultBody;
+import cn.webank.wedpr.pir.message.ClientDecryptResponse;
+// import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -9,5 +10,12 @@ import lombok.EqualsAndHashCode;
 @Data
 public class PirResultResponse extends BaseResponse {
     String jobId;
-    List<PirResultBody> detail;
+    // List<PirResultBody> detail;
+    ClientDecryptResponse detail;
+
+    // Detail detail;
+    // @Data
+    // public class Detail {
+    //     ClientDecryptResponse clientDecryptResponse;
+    // }
 }
