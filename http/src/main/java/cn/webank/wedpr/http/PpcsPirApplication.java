@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
             ClientDecryptService.class
         })
 // @ComponentScan(basePackages = {"cn.webank.wedpr.http", "cn.webank.wedpr.pir"})
-@EntityScan(basePackages = "cn.webank.wedpr.pir.entity")
+@EntityScan(basePackages = {"cn.webank.wedpr.http", "cn.webank.wedpr.pir"})
 public class PpcsPirApplication {
     public static void main(String[] args) {
         SpringApplication.run(PpcsPirApplication.class, args);

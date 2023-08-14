@@ -1,16 +1,9 @@
 package cn.webank.wedpr.http.controller;
 
-import cn.webank.wedpr.pir.service.ClientOTService;
-import cn.webank.wedpr.pir.service.ServerOTService;
-import cn.webank.wedpr.pir.service.ClientDecryptService;
-import cn.webank.wedpr.pir.message.ClientOTRequest;
 import cn.webank.wedpr.pir.message.ClientOTResponse;
-import cn.webank.wedpr.pir.message.ServerOTRequest;
 import cn.webank.wedpr.pir.message.ServerOTResponse;
-import cn.webank.wedpr.pir.message.ClientDecryptRequest;
-import cn.webank.wedpr.pir.message.ClientDecryptResponse;
-
 import cn.webank.wedpr.http.config.PirControllerConfig;
+import cn.webank.wedpr.http.service.PirAppService;
 import cn.webank.wedpr.http.message.ClientJobRequest;
 import cn.webank.wedpr.http.message.ClientJobResponse;
 import cn.webank.wedpr.http.message.ClientPirResponse;
@@ -26,11 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
-// import java.math.BigInteger;
-// import java.util.List;
-// import java.util.ArrayList;
 import okhttp3.OkHttpClient;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -43,11 +32,7 @@ public class PirController {
 
     @Autowired private PirControllerConfig pirConfig;
     @Autowired private ObjectMapper objectMapper;
-    // @Autowired private PirAppService pirAppService;
-
-    @Autowired private ClientOTService clientOTService;
-    @Autowired private ServerOTService serverOTService;
-    @Autowired private ClientDecryptService clientDecryptService;
+    @Autowired private PirAppService pirAppService;
 
     @RequestMapping("/test")
     private Object test() {
@@ -61,33 +46,35 @@ public class PirController {
     @PostMapping("/client")
     public Object client_service(@RequestBody ClientJobRequest clientJobRequest) throws Exception {
 
-        // ClientOTService clientOTService = new ClientOTService();
-        // ClientDecryptService clientDecryptService = new ClientDecryptService();
-
         try {
-
+            // logger.info("Clientjob: clientJobRequest: {}.", objectMapper.writeValueAsString(clientJobRequest));
+            clientJobRequest.setJobType((clientJobRequest.getJobType() != null) ? clientJobRequest.getJobType() : "0");
+            clientJobRequest.setJobAlgorithmType(
+                (clientJobRequest.getJobAlgorithmType() != null) ? clientJobRequest.getJobAlgorithmType() : "0");
+            clientJobRequest.setObfuscationOrder(
+                (clientJobRequest.getObfuscationOrder() != null) ? clientJobRequest.getObfuscationOrder() : 1);
             logger.info("Clientjob: clientJobRequest: {}.", objectMapper.writeValueAsString(clientJobRequest));
 
             // 1. hash披露，获取bashOT参数
-            ClientOTRequest clientOTRequest = new ClientOTRequest();
-            clientOTRequest.setFilterLength(pirConfig.getOtlength());
-            clientOTRequest.setList(clientJobRequest.getList());
-            // ClientOTResponse otParamResponse = pirAppService.runClientOTparam(clientOTRequest);
-            ClientOTResponse otParamResponse = clientOTService.runClientOTparam(clientOTRequest);
+            ClientOTResponse otParamResponse = pirAppService.requesterOtCipher(clientJobRequest);
             logger.info("Clientjob: otParamResponse: {}.", objectMapper.writeValueAsString(otParamResponse));
 
             // 2. 发送hash披露，bashOT参数给数据方，并获取筛选结果
             ServerJobRequest serverJobRequest = new ServerJobRequest();
             serverJobRequest.setJobId(clientJobRequest.getJobId());
-            // serverJobRequest.setJobType(clientJobRequest.getJobType());
-            serverJobRequest.setJobType((clientJobRequest.getJobType() != null) ? clientJobRequest.getJobType() : "0");
+            serverJobRequest.setJobType(clientJobRequest.getJobType());
             serverJobRequest.setJobCreatorAgencyId(clientJobRequest.getJobCreatorAgencyId());
             serverJobRequest.setParticipateAgencyId(clientJobRequest.getParticipateAgencyId());
             serverJobRequest.setDatasetId(clientJobRequest.getDatasetId());
             serverJobRequest.setJobCreator(clientJobRequest.getJobCreator());
+            serverJobRequest.setJobAlgorithmType(clientJobRequest.getJobAlgorithmType());
             serverJobRequest.setX(otParamResponse.getX());
             serverJobRequest.setY(otParamResponse.getY());
+            // clear getList 中的 idIndex 信息
             serverJobRequest.setList(otParamResponse.getList());
+            for (int i = 0; i < serverJobRequest.getList().size(); i++) {
+                serverJobRequest.getList().get(i).setIdIndex(0);
+            }
             logger.info("Client post request: data: {}.", objectMapper.writeValueAsString(serverJobRequest));
 
             // ------ OkHttp post 请求 ------
@@ -130,15 +117,8 @@ public class PirController {
             }
 
             // 3. 根据筛选结果，获取最终匿踪结果
-            ClientDecryptRequest clientDecryptRequest = new ClientDecryptRequest();
-            clientDecryptRequest.setB(otParamResponse.getB());
-            clientDecryptRequest.setList(clientJobRequest.getList());
-            clientDecryptRequest.setServerResult(otResult.getData());
-            ClientDecryptResponse clientDecryptResponse = clientDecryptService.runDecryptOTparam(clientDecryptRequest);
-
-            PirResultResponse pirResultResponse = new PirResultResponse();
-            pirResultResponse.setJobId(clientJobRequest.getJobId());
-            pirResultResponse.setDetail(clientDecryptResponse);
+            PirResultResponse pirResultResponse = pirAppService.requesterOtRecover(
+                otParamResponse, clientJobRequest, otResult);
             logger.info("Client pir result: message: {}.", objectMapper.writeValueAsString(pirResultResponse));
 
             ClientJobResponse clientResponse = ClientJobResponse.successResponse();
@@ -200,17 +180,8 @@ public class PirController {
         } else {
         }
 
-        // ServerOTService serverOTService = new ServerOTService();
-
         // 1. 根据请求，筛选数据，加密密钥，返回筛选结果及AES消息密文
-        ServerOTRequest serverOTRequest = new ServerOTRequest();
-        serverOTRequest.setJobType(serverJobRequest.getJobType());
-        serverOTRequest.setDatasetId(serverJobRequest.getDatasetId());
-        serverOTRequest.setX(serverJobRequest.getX());
-        serverOTRequest.setY(serverJobRequest.getY());
-        serverOTRequest.setList(serverJobRequest.getList());
-        // ServerOTResponse otResultResponse = pirAppService.runServerOTparam(serverOTRequest);
-        ServerOTResponse otResultResponse = serverOTService.runServerOTparam(serverOTRequest);
+        ServerOTResponse otResultResponse = pirAppService.providerOtCipher(serverJobRequest);
         logger.info("Serverjob: otResultResponse: {}.", objectMapper.writeValueAsString(otResultResponse));
 
         ClientJobResponse clientResponse = ClientJobResponse.successResponse();

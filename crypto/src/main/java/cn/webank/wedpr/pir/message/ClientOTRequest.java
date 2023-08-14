@@ -9,6 +9,7 @@ import lombok.Data;
 @Data
 public class ClientOTRequest {
     int filterLength;
+    Integer obfuscationOrder;
     // ClientDataBody clientData;
     List<ClientDataBody> list;
 }
