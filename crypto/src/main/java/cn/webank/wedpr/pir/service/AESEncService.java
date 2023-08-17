@@ -11,34 +11,6 @@ import java.util.Base64;
 
 @Service
 public class AESEncService {
-    public static void main(String[] args) throws Exception {
-        String plainText = "Hello, World!";
-        String keyString = generateRandomKey();  // 随机生成 16 位字符串格式的密钥
-        System.out.println("KeyString Text: " + keyString);
-
-        // // 将密钥字符串转换为整数(无法保证正整数)
-        // BigInteger keyInt = new BigInteger(Base64.getDecoder().decode(keyString));
-        // // 将整数转换为字符串
-        // String convertedKeyString = Base64.getEncoder().encodeToString(keyInt.toByteArray());
-        // System.out.println("Original Key String: " + keyString);
-        // System.out.println("Converted Key Integer: " + keyInt);
-        // System.out.println("Converted Key String: " + convertedKeyString);
-
-        // // 将密钥转换为正整数（无法保证正整数）
-        // long keyNumber = convertKeyToNumber(keyString);
-        // System.out.println("Key as number: " + keyNumber);
-        // // 将正整数转换为字符串密钥
-        // String convertedKeyString = convertNumberToKey(keyNumber);
-        // System.out.println("Key as string: " + convertedKeyString);
-
-        // 加密
-        String encryptedText = encryptAES(plainText, keyString);
-        System.out.println("Encrypted Text: " + encryptedText);
-
-        // 解密
-        String decryptedText = decryptAES(encryptedText, keyString);
-        System.out.println("Decrypted Text: " + decryptedText);
-    }
 
     public static String generateRandomKey() {
         // 随机生成 16 位字符串格式的密钥

@@ -14,15 +14,16 @@ import cn.webank.wedpr.http.message.SimpleEntity;
 import cn.webank.wedpr.http.message.JobRequest;
 import cn.webank.wedpr.http.message.JobEntity;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import okhttp3.OkHttpClient;
-import okhttp3.MediaType;
-import okhttp3.Request;
+import org.springframework.web.client.RestTemplate;
 
 @RestController
 @RequestMapping("/api")
@@ -33,6 +34,7 @@ public class PirController {
     @Autowired private PirControllerConfig pirConfig;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private PirAppService pirAppService;
+    @Autowired private RestTemplate restTemplate;
 
     @RequestMapping("/test")
     private Object test() {
@@ -77,14 +79,7 @@ public class PirController {
             }
             logger.info("Client post request: data: {}.", objectMapper.writeValueAsString(serverJobRequest));
 
-            // ------ OkHttp post 请求 ------
-            OkHttpClient client = new OkHttpClient();
-            MediaType mediaType = MediaType.parse("application/json");
-            okhttp3.RequestBody body = okhttp3.RequestBody.create(
-                objectMapper.writeValueAsString(serverJobRequest), mediaType);
-
-            // String searchIp = clientJobRequest.getSearchIp();
-            // Integer searchPort = pirConfig.getPort();
+            // 从配置获取searchendpoint
             String searchendpoint = null;
             logger.info("Client post request: agencyip: {}.", pirConfig.getAgencyip());
             for (int i = 0; i < pirConfig.getAgencyip().size(); i++) {
@@ -96,15 +91,21 @@ public class PirController {
             }
             logger.info("Client post request: searchendpoint: {}.", searchendpoint);
 
-            Request request = new Request.Builder().url("http://"+ searchendpoint + "/api/server").post(body).build();
-            okhttp3.ResponseBody responseBody = client.newCall(request).execute().body();
+            // 设置请求头
+            String pirUrl = "http://"+ searchendpoint + "/api/server";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            // 将JobRequest对象转换为HttpEntity，并设置请求头
+            ObjectMapper objectMapper = new ObjectMapper();
+            String requestBody = objectMapper.writeValueAsString(serverJobRequest);
+            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(pirUrl, requestEntity, String.class);
 
+            // 创建SimpleEntity对象，并将ResponseEntity的内容设置到SimpleEntity中
+            String responseBody = responseEntity.getBody();
             SimpleEntity otResult = new SimpleEntity();
             if (responseBody != null) {
-                String responseBodyString = responseBody.string();
-                // ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(responseBodyString);
-                otResult = objectMapper.treeToValue(jsonNode, SimpleEntity.class);
+                otResult = objectMapper.readValue(responseBody, SimpleEntity.class);
             }
 
             if (otResult.getCode() != 0) {
@@ -113,7 +114,6 @@ public class PirController {
                 ClientPirfailResponse pirResponse = new ClientPirfailResponse();
                 pirResponse.setError(clientResponse);
                 return pirResponse;
-            } else {
             }
 
             // 3. 根据筛选结果，获取最终匿踪结果
@@ -156,21 +156,25 @@ public class PirController {
             jobRequest.setDatasetId(serverJobRequest.getDatasetId());
             jobRequest.setJobCreator(serverJobRequest.getJobCreator());
 
-            OkHttpClient client = new OkHttpClient();
-            MediaType mediaType = MediaType.parse("application/json");
-            okhttp3.RequestBody body = okhttp3.RequestBody.create(objectMapper.writeValueAsString(jobRequest), mediaType);
-            Request request = new Request.Builder().url(
-                "http://" + pirConfig.getWebServiceEndpoint() + "/api/v3/ppc-management/pms/jobs-ays").patch(body).build();
-            okhttp3.ResponseBody responseBody = client.newCall(request).execute().body();
+            // 设置请求头
+            String pmsUrl = "http://" + pirConfig.getWebServiceEndpoint() + "/api/v3/ppc-management/pms/jobs-ays";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            // 将JobRequest对象转换为HttpEntity，并设置请求头
+            HttpEntity<JobRequest> requestEntity = new HttpEntity<>(jobRequest, headers);
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(pmsUrl, requestEntity, String.class);
 
+            // 创建JobEntity对象，并将ResponseEntity的内容设置到JobEntity中
+            String responseBody = responseEntity.getBody();
             JobEntity jobResult = new JobEntity();
+            // jobResult.setErrorCode(responseEntity.getStatusCodeValue());
+            // jobResult.setMessage(responseEntity.getStatusCode().getReasonPhrase());
+            // jobResult.setData(responseEntity.getBody());
             if (responseBody != null) {
-                String responseBodyString = responseBody.string();
-                JsonNode jsonNode = objectMapper.readTree(responseBodyString);
-                jobResult = objectMapper.treeToValue(jsonNode, JobEntity.class);
+                jobResult = objectMapper.readValue(responseBody, JobEntity.class);
             }
-
             logger.info("Serverjob: patchResponse: {}.", jobResult.getErrorCode());
+
             if (jobResult.getErrorCode() != 0) {
                 ClientJobResponse clientResponse = ClientJobResponse.failureResponse(
                     jobResult.getErrorCode(), jobResult.getMessage());

@@ -7,36 +7,6 @@ import java.math.BigInteger;
 
 @Service
 public class KeytoIntService {
-    public static void main(String[] args) {
-
-        // String str = "Hello, World!";
-        String str = "DSidpEoaZgMs7wkv4pCzMg==";
-
-        // 字符串转字节数组
-        byte[] bytes = str.getBytes();
-        // byte[] bytes = {0x00, 0x01, 0x02, 0x03};
-        System.out.println("Bytes: " + bytesToHexString(bytes));
-
-        // // 将字节序列转换为整数(int 太短会丢失信息)
-        // int number = bytesToInt(bytes, ByteOrder.BIG_ENDIAN);
-        // System.out.println("Number: " + number);
-
-        // // 将整数转换为字节序列
-        // byte[] convertedBytes = intToBytes(number, ByteOrder.BIG_ENDIAN);
-        // System.out.println("Converted Bytes: " + bytesToHexString(convertedBytes));
-
-        // 将字节序列转换为整数
-        BigInteger number = bytesToBigInteger(bytes);
-        System.out.println("Number: " + number);
-
-        // 将整数转换为字节序列
-        byte[] convertedBytes = bigIntegerToBytes(number);
-        System.out.println("Converted Bytes: " + bytesToHexString(convertedBytes));
-
-        // 字节数组转字符串
-        String convertedStr = new String(convertedBytes);
-        System.out.println("Converted String: " + convertedStr);
-    }
 
     public static int bytesToInt(byte[] bytes, ByteOrder byteOrder) {
         ByteBuffer buffer = ByteBuffer.wrap(bytes).order(byteOrder);
