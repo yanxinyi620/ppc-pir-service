@@ -63,7 +63,4 @@ out/
 
 ### personal file ###
 logs/
-
-clientkey.pem
-serverkey.pem
-TestChatGPT.java
+*myTest.java

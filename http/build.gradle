@@ -12,7 +12,6 @@ repositories {
 
 dependencies {
     implementation project(':crypto')
-    implementation project(':shared')
 }
 
 sourceSets {
@@ -47,16 +46,13 @@ processTestResources {
 }
 
 jar {
-    // 将shared模块的源码和资源文件打包进jar中
+    // 将crypto模块的源码和资源文件打包进jar中
     from project(':crypto').sourceSets.main.output
     from project(':crypto').sourceSets.main.resources
-    from project(':shared').sourceSets.main.output
-    from project(':shared').sourceSets.main.resources
     // 不包含test源码和资源文件
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', '**/Test*.*', '**/*Test.*'
     // 不包含crypto模块的编译产物，避免重复
     exclude 'cn/webank/wedpr/crypto/**'
-    exclude 'cn/webank/wedpr/shared/**'
     with {
         destinationDirectory = file('dist/apps')
         archiveFileName = "ppcs-" + project.name + "-" + version + ".jar"

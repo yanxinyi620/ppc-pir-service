@@ -7,7 +7,6 @@
 ppc-pir-service
   http
   crypto
-  shared
 
 ## 项目接口
 
