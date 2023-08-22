@@ -3,6 +3,7 @@ package cn.webank.wedpr.http.controller;
 import cn.webank.wedpr.pir.message.ClientOTResponse;
 import cn.webank.wedpr.pir.message.ServerOTResponse;
 import cn.webank.wedpr.http.config.PirControllerConfig;
+import cn.webank.wedpr.http.utils.HttpUtils;
 import cn.webank.wedpr.http.service.PirAppService;
 import cn.webank.wedpr.http.message.ClientJobRequest;
 import cn.webank.wedpr.http.message.ClientJobResponse;
@@ -15,13 +16,14 @@ import cn.webank.wedpr.http.message.JobRequest;
 import cn.webank.wedpr.http.message.JobEntity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
+// import org.springframework.http.HttpHeaders;
+// import org.springframework.http.MediaType;
+// import org.springframework.http.HttpEntity;
+// import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -35,6 +37,7 @@ public class PirController {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private PirAppService pirAppService;
     @Autowired private RestTemplate restTemplate;
+    @Autowired private RestTemplate okHttpTemplate;
 
     @RequestMapping("/test")
     private Object test() {
@@ -46,7 +49,7 @@ public class PirController {
 
     // 请求方
     @PostMapping("/client")
-    public Object client_service(@RequestBody ClientJobRequest clientJobRequest) throws Exception {
+    public Object clientService(@RequestBody ClientJobRequest clientJobRequest) throws Exception {
 
         try {
             // logger.info("Clientjob: clientJobRequest: {}.", objectMapper.writeValueAsString(clientJobRequest));
@@ -54,7 +57,7 @@ public class PirController {
             clientJobRequest.setJobAlgorithmType(
                 (clientJobRequest.getJobAlgorithmType() != null) ? clientJobRequest.getJobAlgorithmType() : "0");
             clientJobRequest.setObfuscationOrder(
-                (clientJobRequest.getObfuscationOrder() != null) ? clientJobRequest.getObfuscationOrder() : 1);
+                (clientJobRequest.getObfuscationOrder() != null) ? clientJobRequest.getObfuscationOrder() : pirConfig.getObfuscationNumber());
             logger.info("Clientjob: clientJobRequest: {}.", objectMapper.writeValueAsString(clientJobRequest));
 
             // 1. hash披露，获取bashOT参数
@@ -73,39 +76,34 @@ public class PirController {
             serverJobRequest.setX(otParamResponse.getX());
             serverJobRequest.setY(otParamResponse.getY());
             // clear getList 中的 idIndex 信息
-            serverJobRequest.setList(otParamResponse.getList());
-            for (int i = 0; i < serverJobRequest.getList().size(); i++) {
-                serverJobRequest.getList().get(i).setIdIndex(0);
+            serverJobRequest.setDataBodyList(otParamResponse.getDataBodyList());
+            for (int i = 0; i < serverJobRequest.getDataBodyList().size(); i++) {
+                serverJobRequest.getDataBodyList().get(i).setIdIndex(0);
             }
             logger.info("Client post request: data: {}.", objectMapper.writeValueAsString(serverJobRequest));
 
             // 从配置获取searchendpoint
             String searchendpoint = null;
-            logger.info("Client post request: agencyip: {}.", pirConfig.getAgencyip());
-            for (int i = 0; i < pirConfig.getAgencyip().size(); i++) {
-                String agency = pirConfig.getAgencyip().get(i);
+            logger.info("Client post request: agencyip: {}.", pirConfig.getAgencyIp());
+            for (int i = 0; i < pirConfig.getAgencyIp().size(); i++) {
+                String agency = pirConfig.getAgencyIp().get(i);
                 if (clientJobRequest.getSearchIp().equals(agency)) {
-                    searchendpoint = pirConfig.getAgencyendpoint().get(i);
+                    searchendpoint = pirConfig.getAgencyEndpoint().get(i);
                 } else {
                 }
             }
             logger.info("Client post request: searchendpoint: {}.", searchendpoint);
 
             // 设置请求头
-            String pirUrl = "http://"+ searchendpoint + "/api/server";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            // 将JobRequest对象转换为HttpEntity，并设置请求头
-            ObjectMapper objectMapper = new ObjectMapper();
+            String pirUrl = HttpUtils.formatHttpUrl(pirConfig.getSslOn(), searchendpoint, pirConfig.getPirUri());
             String requestBody = objectMapper.writeValueAsString(serverJobRequest);
-            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity(pirUrl, requestEntity, String.class);
+            SimpleEntity otResult =
+                    HttpUtils.sendPostRequestWithRetry(
+                            restTemplate, pirUrl, requestBody, SimpleEntity.class, pirConfig.getRetryTimes());
 
-            // 创建SimpleEntity对象，并将ResponseEntity的内容设置到SimpleEntity中
-            String responseBody = responseEntity.getBody();
-            SimpleEntity otResult = new SimpleEntity();
-            if (responseBody != null) {
-                otResult = objectMapper.readValue(responseBody, SimpleEntity.class);
+            if (Objects.isNull(otResult.getData()) || otResult.getCode() != 0) {
+                logger.warn(
+                        "从数据方查询pir任务失败, taskID: {}, response: {}", clientJobRequest.getJobId(), otResult);
             }
 
             if (otResult.getCode() != 0) {
@@ -142,11 +140,11 @@ public class PirController {
 
     // 数据方
     @PostMapping("/server")
-    public Object server_service(@RequestBody ServerJobRequest serverJobRequest) throws Exception {
+    public Object serverService(@RequestBody ServerJobRequest serverJobRequest) throws Exception {
         logger.info("Serverjob: serverJobRequest: {}.", objectMapper.writeValueAsString(serverJobRequest));
 
         // 调用web服务，保存匿踪参与任务
-        if (pirConfig.getDeploymode() != 2) {
+        if (pirConfig.getDeployMode() != 2) {
             JobRequest jobRequest = new JobRequest();
             jobRequest.setJobId(serverJobRequest.getJobId());
             jobRequest.setJobTitle("PPC-AYS-Title");
@@ -157,21 +155,18 @@ public class PirController {
             jobRequest.setJobCreator(serverJobRequest.getJobCreator());
 
             // 设置请求头
-            String pmsUrl = "http://" + pirConfig.getWebServiceEndpoint() + "/api/v3/ppc-management/pms/jobs-ays";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            // 将JobRequest对象转换为HttpEntity，并设置请求头
-            HttpEntity<JobRequest> requestEntity = new HttpEntity<>(jobRequest, headers);
-            ResponseEntity<String> responseEntity = restTemplate.postForEntity(pmsUrl, requestEntity, String.class);
+            String pmsUrl = HttpUtils.formatHttpUrl(pirConfig.getSslOn(), pirConfig.getWebServiceEndpoint(), pirConfig.getPmsUri());
+            String requestBody = objectMapper.writeValueAsString(jobRequest);
+            // JobEntity jobResult =
+            //         HttpUtils.sendPostRequestWithRetry(
+            //                 restTemplate, pmsUrl, requestBody, JobEntity.class, pirConfig.getRetryTimes());
+            JobEntity jobResult =
+                    HttpUtils.sendPatchRequest(
+                            okHttpTemplate, pmsUrl, requestBody, JobEntity.class);
 
-            // 创建JobEntity对象，并将ResponseEntity的内容设置到JobEntity中
-            String responseBody = responseEntity.getBody();
-            JobEntity jobResult = new JobEntity();
-            // jobResult.setErrorCode(responseEntity.getStatusCodeValue());
-            // jobResult.setMessage(responseEntity.getStatusCode().getReasonPhrase());
-            // jobResult.setData(responseEntity.getBody());
-            if (responseBody != null) {
-                jobResult = objectMapper.readValue(responseBody, JobEntity.class);
+            if (Objects.isNull(jobResult.getData()) || jobResult.getErrorCode() != 0) {
+                logger.warn(
+                    "从web服务查询调用patch服务鉴权失败, taskID: {}, response: {}", jobRequest.getJobId(), jobResult);
             }
             logger.info("Serverjob: patchResponse: {}.", jobResult.getErrorCode());
 

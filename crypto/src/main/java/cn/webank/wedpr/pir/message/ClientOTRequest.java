@@ -11,5 +11,5 @@ public class ClientOTRequest {
     int filterLength;
     Integer obfuscationOrder;
     // ClientDataBody clientData;
-    List<ClientDataBody> list;
+    List<ClientDataBody> dataBodyList;
 }

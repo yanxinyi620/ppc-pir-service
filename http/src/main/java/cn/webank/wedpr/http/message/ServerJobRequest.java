@@ -12,5 +12,5 @@ public class ServerJobRequest extends BaseRequest {
     // ServerDataBody serverData;
     BigInteger x;
     BigInteger y;
-    List<ServerDataBody> list;
+    List<ServerDataBody> dataBodyList;
 }

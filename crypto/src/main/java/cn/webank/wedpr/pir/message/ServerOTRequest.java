@@ -13,5 +13,5 @@ public class ServerOTRequest {
     String datasetId;
     BigInteger x;
     BigInteger y;
-    List<ServerDataBody> list;
+    List<ServerDataBody> dataBodyList;
 }

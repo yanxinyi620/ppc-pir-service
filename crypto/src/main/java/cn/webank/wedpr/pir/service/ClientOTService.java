@@ -35,9 +35,6 @@ public class ClientOTService {
     public BigInteger calculateIndexZ0(Integer idIndex, BigInteger c_blinding) {
         // 将整数转长整数
         BigInteger IdNumber = BigInteger.valueOf(idIndex);
-
-        // BigInteger z0 = CryptoService.getPowMod(c_blinding.subtract(BigInteger.valueOf(id_index)));
-        // BigInteger z0 = CryptoService.getPowMod(c_blinding.subtract(BigInteger.valueOf(0)));
         BigInteger z0 = CryptoService.getPowMod(c_blinding.subtract(IdNumber));
         return z0;
     }
@@ -57,8 +54,8 @@ public class ClientOTService {
 
         List<ServerDataBody> serverDataArrayList = new ArrayList<>();
         // int obfuscation_order = 1;
-        for (int i = 0; i < clientOTRequest.getList().size(); i++) {
-            String searchId = clientOTRequest.getList().get(i).getSearchId();
+        for (int i = 0; i < clientOTRequest.getDataBodyList().size(); i++) {
+            String searchId = clientOTRequest.getDataBodyList().get(i).getSearchId();
             String filter = searchId.length() < filterLength ? searchId : searchId.substring(0, filterLength);
             // Random rand = new Random();
             // int id_index = rand.nextInt(obfuscation_order+1);  // 生成 [0, 1] 范围内的随机整数
@@ -76,7 +73,7 @@ public class ClientOTService {
         clientOTResponse.setB(blinding_b);
         clientOTResponse.setX(x);
         clientOTResponse.setY(y);
-        clientOTResponse.setList(serverDataArrayList);
+        clientOTResponse.setDataBodyList(serverDataArrayList);
         logger.info("Client runClientOTparam success.");
 
         return clientOTResponse;
@@ -97,8 +94,8 @@ public class ClientOTService {
 
         List<ServerDataBody> serverDataArrayList = new ArrayList<>();
         // int obfuscation_order = 1;
-        for (int i = 0; i < clientOTRequest.getList().size(); i++) {
-            String searchId = clientOTRequest.getList().get(i).getSearchId();
+        for (int i = 0; i < clientOTRequest.getDataBodyList().size(); i++) {
+            String searchId = clientOTRequest.getDataBodyList().get(i).getSearchId();
             Random rand = new Random();
             Integer idIndex = rand.nextInt(obfuscationOrder+1);  // 生成 [0, 1] 范围内的随机整数
             BigInteger z0 = calculateIndexZ0(idIndex, c_blinding);
@@ -119,7 +116,7 @@ public class ClientOTService {
         clientOTResponse.setB(blinding_b);
         clientOTResponse.setX(x);
         clientOTResponse.setY(y);
-        clientOTResponse.setList(serverDataArrayList);
+        clientOTResponse.setDataBodyList(serverDataArrayList);
         logger.info("Client clientOTcipher success.");
 
         return clientOTResponse;

@@ -1,17 +1,13 @@
 package cn.webank.wedpr.http.service;
 
-// import java.util.*;
-// import org.slf4j.Logger;
-// import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import cn.webank.wedpr.http.config.PirControllerConfig;
+import cn.webank.wedpr.http.utils.ParamUtils.*;
 import cn.webank.wedpr.http.message.ClientJobRequest;
 import cn.webank.wedpr.http.message.PirResultResponse;
 import cn.webank.wedpr.http.message.ServerJobRequest;
 import cn.webank.wedpr.http.message.SimpleEntity;
 import cn.webank.wedpr.pir.common.WedprException;
+import cn.webank.wedpr.pir.common.WedprStatusEnum;
 import cn.webank.wedpr.pir.message.ClientDecryptRequest;
 import cn.webank.wedpr.pir.message.ClientDecryptResponse;
 import cn.webank.wedpr.pir.message.ClientOTRequest;
@@ -21,6 +17,12 @@ import cn.webank.wedpr.pir.message.ServerOTResponse;
 import cn.webank.wedpr.pir.service.ClientDecryptService;
 import cn.webank.wedpr.pir.service.ClientOTService;
 import cn.webank.wedpr.pir.service.ServerOTService;
+
+// import java.util.*;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class PirAppService {
@@ -38,13 +40,15 @@ public class PirAppService {
         ClientOTRequest clientOTRequest = new ClientOTRequest();
         ClientOTResponse otParamResponse = new ClientOTResponse();
 
-        clientOTRequest.setList(clientJobRequest.getList());
-        if (clientJobRequest.getJobAlgorithmType().equals("0")) {
-            clientOTRequest.setFilterLength(pirConfig.getOtlength());
+        clientOTRequest.setDataBodyList(clientJobRequest.getSearchIdList());
+        if (clientJobRequest.getJobAlgorithmType().equals(AlgorithmType.idFilter.getValue())) {
+            clientOTRequest.setFilterLength(pirConfig.getFilterLength());
             otParamResponse = clientOTService.runClientOTparam(clientOTRequest);
-        } else {
+        } else if (clientJobRequest.getJobAlgorithmType().equals(AlgorithmType.idObfuscation.getValue())) {
             clientOTRequest.setObfuscationOrder(clientJobRequest.getObfuscationOrder());
             otParamResponse = clientOTService.clientOTcipher(clientOTRequest);
+        } else {
+            throw new WedprException(WedprStatusEnum.INVALID_INPUT_VALUE);
         }
 
         return otParamResponse;
@@ -56,15 +60,17 @@ public class PirAppService {
         // 3. 根据筛选结果，获取最终匿踪结果
         ClientDecryptRequest clientDecryptRequest = new ClientDecryptRequest();
         clientDecryptRequest.setB(otParamResponse.getB());
-        clientDecryptRequest.setList(clientJobRequest.getList());
+        clientDecryptRequest.setDataBodyList(clientJobRequest.getSearchIdList());
         clientDecryptRequest.setServerResult(otResult.getData());
 
         ClientDecryptResponse clientDecryptResponse = clientDecryptService.runDecryptOTparam(clientDecryptRequest);
         // ClientDecryptResponse clientDecryptResponse = new ClientDecryptResponse();
-        // if (clientJobRequest.getJobAlgorithmType().equals("0")) {
+        // if (clientJobRequest.getJobAlgorithmType().equals(AlgorithmType.idFilter.getValue())) {
         //     clientDecryptResponse = clientDecryptService.runDecryptOTparam(clientDecryptRequest);
-        // } else {
+        // } else if (clientJobRequest.getJobAlgorithmType().equals(AlgorithmType.idObfuscation.getValue())) {
         //     clientDecryptResponse = clientDecryptService.decryptOTcipher(clientDecryptRequest);
+        // } else {
+        //     throw new WedprException(WedprStatusEnum.INVALID_INPUT_VALUE);
         // }
 
         PirResultResponse pirResultResponse = new PirResultResponse();
@@ -82,13 +88,15 @@ public class PirAppService {
         serverOTRequest.setDatasetId(serverJobRequest.getDatasetId());
         serverOTRequest.setX(serverJobRequest.getX());
         serverOTRequest.setY(serverJobRequest.getY());
-        serverOTRequest.setList(serverJobRequest.getList());
+        serverOTRequest.setDataBodyList(serverJobRequest.getDataBodyList());
 
         ServerOTResponse otResultResponse = new ServerOTResponse();
-        if (serverJobRequest.getJobAlgorithmType().equals("0")) {
+        if (serverJobRequest.getJobAlgorithmType().equals(AlgorithmType.idFilter.getValue())) {
             otResultResponse = serverOTService.runServerOTparam(serverOTRequest);
-        } else {
+        } else if (serverJobRequest.getJobAlgorithmType().equals(AlgorithmType.idObfuscation.getValue())) {
             otResultResponse = serverOTService.serverOTcipher(serverOTRequest);
+        } else {
+            throw new WedprException(WedprStatusEnum.INVALID_INPUT_VALUE);
         }
         
         return otResultResponse;

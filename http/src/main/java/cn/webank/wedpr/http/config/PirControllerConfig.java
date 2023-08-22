@@ -10,44 +10,79 @@ import org.springframework.context.annotation.Configuration;
 public class PirControllerConfig {
 
     @Value("${server.port}")
-    private Integer port;
-
-    @Value("${web.service.endpoint}")
-    private String webserviceendpoint;
-
-    @Value("${pir.length}")
-    private Integer otlength;
-
-    @Value("${server.deploymode}")
-    private Integer deploymode;
+    private Integer pirPort;
 
     @Value("#{'${server.agencyip}'.split(';')}")
-    private List<String> agencyip;
+    private List<String> agencyIp;
 
     @Value("#{'${server.agencyendpoint}'.split(';')}")
-    private List<String> agencyendpoint;
+    private List<String> agencyEndpoint;
 
-    public Integer getPort() {
-        return port;
+    @Value("${pir.deploymode}")
+    private Integer deployMode;
+
+    @Value("${pir.filter.length}")
+    private Integer filterLength;
+
+    @Value("${pir.obfuscation.number}")
+    private Integer obfuscationNumber;
+
+    @Value("${http.retrytimes}")
+    private Integer retryTimes;
+
+    @Value("${web.service.endpoint}")
+    private String webServiceEndpoint;
+
+    @Value("${pir.server.uri}")
+    private String pirUri;
+
+    @Value("${pms.patch.uri}")
+    private String pmsUri;
+
+    @Value("${ssl.on}")
+    private Boolean sslOn;
+
+    public Integer getPirPort() {
+        return pirPort;
+    }
+
+    public List<String> getAgencyIp() {
+        return agencyIp;
+    }
+
+    public List<String> getAgencyEndpoint() {
+        return agencyEndpoint;
+    }
+
+    public Integer getDeployMode() {
+        return deployMode;
+    }
+
+    public Integer getFilterLength() {
+        return filterLength;
+    }
+
+    public Integer getObfuscationNumber() {
+        return obfuscationNumber;
+    }
+
+    public Integer getRetryTimes() {
+        return retryTimes;
     }
 
     public String getWebServiceEndpoint() {
-        return webserviceendpoint;
+        return webServiceEndpoint;
     }
 
-    public Integer getOtlength() {
-        return otlength;
+    public String getPirUri() {
+        return pirUri;
     }
 
-    public Integer getDeploymode() {
-        return deploymode;
+    public String getPmsUri() {
+        return pmsUri;
     }
 
-    public List<String> getAgencyip() {
-        return agencyip;
-    }
-
-    public List<String> getAgencyendpoint() {
-        return agencyendpoint;
+    public Boolean getSslOn() {
+        return sslOn;
     }
 }

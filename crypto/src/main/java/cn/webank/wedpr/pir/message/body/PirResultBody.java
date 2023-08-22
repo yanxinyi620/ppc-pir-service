@@ -5,5 +5,6 @@ import lombok.Data;
 @Data
 public class PirResultBody {
     String searchId;
-    String searchDetail;
+    Boolean searchExist;
+    String searchValue;
 }

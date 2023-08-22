@@ -8,5 +8,5 @@ import lombok.Data;
 // @EqualsAndHashCode(callSuper = true)
 @Data
 public class ServerOTResponse {
-    List<ServerResultlist> list;
+    List<ServerResultlist> resultBodyList;
 }

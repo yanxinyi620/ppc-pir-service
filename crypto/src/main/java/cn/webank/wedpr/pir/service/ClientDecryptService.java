@@ -3,6 +3,7 @@ package cn.webank.wedpr.pir.service;
 import cn.webank.wedpr.pir.message.ClientDecryptRequest;
 import cn.webank.wedpr.pir.message.ClientDecryptResponse;
 import cn.webank.wedpr.pir.message.body.PirResultBody;
+import cn.webank.wedpr.pir.message.body.ServerResultBody;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -23,14 +24,15 @@ public class ClientDecryptService {
         ClientDecryptResponse clientDecryptResponse = new ClientDecryptResponse();
 
         List<PirResultBody> pirReseltBodyArrayList = new ArrayList<>();
-        for (int i = 0; i < clientDecryptRequest.getServerResult().getList().size(); i++) {
+        for (int i = 0; i < clientDecryptRequest.getServerResult().getResultBodyList().size(); i++) {
             PirResultBody pirResultBody = new PirResultBody();
-            pirResultBody.setSearchId(clientDecryptRequest.getList().get(i).getSearchId());
+            pirResultBody.setSearchId(clientDecryptRequest.getDataBodyList().get(i).getSearchId());
+            List<ServerResultBody> serverResultlist = clientDecryptRequest.getServerResult().getResultBodyList().get(i).getResultBodyList();
 
-            for (int j = 0; j < clientDecryptRequest.getServerResult().getList().get(i).getList().size(); j++) {
-                BigInteger e = clientDecryptRequest.getServerResult().getList().get(i).getList().get(j).getE();
-                BigInteger w = clientDecryptRequest.getServerResult().getList().get(i).getList().get(j).getW();
-                String cipher_str = clientDecryptRequest.getServerResult().getList().get(i).getList().get(j).getC();
+            for (int j = 0; j < serverResultlist.size(); j++) {
+                BigInteger e = serverResultlist.get(j).getE();
+                BigInteger w = serverResultlist.get(j).getW();
+                String cipher_str = serverResultlist.get(j).getC();
                 BigInteger w1 = CryptoService.getOTPow(w, clientDecryptRequest.getB());
 
                 try{
@@ -50,16 +52,17 @@ public class ClientDecryptService {
                     String decryptedText = AESEncService.decryptAES(cipher_str, convertedStr);
                     // System.out.println("Decrypted Text: " + decryptedText);
 
-                    pirResultBody.setSearchDetail(decryptedText);
+                    pirResultBody.setSearchExist(true);
+                    pirResultBody.setSearchValue(decryptedText);
                     pirReseltBodyArrayList.add(pirResultBody);
                 } catch (Exception err) {
                     // logger.info("Client pir ERROR: {}.", err);
                 }
             }
 
-            // if (clientDecryptRequest.getServerResult().getList().get(i).getList().size() == 0) {
-            if (pirResultBody.getSearchDetail() == null) {
-                pirResultBody.setSearchDetail("message not found");
+            // if (serverResultlist.size() == 0) {
+            if (pirResultBody.getSearchValue() == null) {
+                pirResultBody.setSearchExist(false);
                 pirReseltBodyArrayList.add(pirResultBody);
             } else {
             }
@@ -78,14 +81,15 @@ public class ClientDecryptService {
         ClientDecryptResponse clientDecryptResponse = new ClientDecryptResponse();
 
         List<PirResultBody> pirReseltBodyArrayList = new ArrayList<>();
-        for (int i = 0; i < clientDecryptRequest.getServerResult().getList().size(); i++) {
+        for (int i = 0; i < clientDecryptRequest.getServerResult().getResultBodyList().size(); i++) {
             PirResultBody pirResultBody = new PirResultBody();
-            pirResultBody.setSearchId(clientDecryptRequest.getList().get(i).getSearchId());
+            pirResultBody.setSearchId(clientDecryptRequest.getDataBodyList().get(i).getSearchId());
+            List<ServerResultBody> serverResultlist = clientDecryptRequest.getServerResult().getResultBodyList().get(i).getResultBodyList();
 
-            for (int j = 0; j < clientDecryptRequest.getServerResult().getList().get(i).getList().size(); j++) {
-                BigInteger e = clientDecryptRequest.getServerResult().getList().get(i).getList().get(j).getE();
-                BigInteger w = clientDecryptRequest.getServerResult().getList().get(i).getList().get(j).getW();
-                String cipher_str = clientDecryptRequest.getServerResult().getList().get(i).getList().get(j).getC();
+            for (int j = 0; j < serverResultlist.size(); j++) {
+                BigInteger e = serverResultlist.get(j).getE();
+                BigInteger w = serverResultlist.get(j).getW();
+                String cipher_str = serverResultlist.get(j).getC();
                 BigInteger w1 = CryptoService.getOTPow(w, clientDecryptRequest.getB());
 
                 try{
@@ -105,16 +109,17 @@ public class ClientDecryptService {
                     String decryptedText = AESEncService.decryptAES(cipher_str, convertedStr);
                     // System.out.println("Decrypted Text: " + decryptedText);
 
-                    pirResultBody.setSearchDetail(decryptedText);
+                    pirResultBody.setSearchExist(true);
+                    pirResultBody.setSearchValue(decryptedText);
                     pirReseltBodyArrayList.add(pirResultBody);
                 } catch (Exception err) {
                     // logger.info("Client pir ERROR: {}.", err);
                 }
             }
 
-            // if (clientDecryptRequest.getServerResult().getList().get(i).getList().size() == 0) {
-            if (pirResultBody.getSearchDetail() == null) {
-                pirResultBody.setSearchDetail("message not found");
+            // if (serverResultlist.size() == 0) {
+            if (pirResultBody.getSearchValue() == null) {
+                pirResultBody.setSearchExist(false);
                 pirReseltBodyArrayList.add(pirResultBody);
             } else {
             }

@@ -11,7 +11,7 @@ import java.math.BigInteger;
 @Data
 public class ClientDecryptRequest {
     BigInteger b;
-    List<ClientDataBody> list;
+    List<ClientDataBody> dataBodyList;
     // ServerResult serverResult;
     // @Data
     // public class ServerResult {

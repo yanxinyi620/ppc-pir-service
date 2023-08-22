@@ -6,14 +6,14 @@ import cn.webank.wedpr.pir.message.body.ClientDataBody;
 import java.util.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class IdHashVecService {
 
-    private static final Logger logger = LoggerFactory.getLogger(IdHashVecService.class);
+    // private static final Logger logger = LoggerFactory.getLogger(IdHashVecService.class);
 
     public static List<ClientDataBody> getIdHashVec(
         int obfuscationOrder, Integer idIndex, String searchId) throws WedprException {

@@ -46,7 +46,7 @@ public class ClientOTServiceTest {
 
         ClientOTRequest clientOTRequest = new ClientOTRequest();
         clientOTRequest.setFilterLength(otlength);
-        clientOTRequest.setList(clientDataArrayList);
+        clientOTRequest.setDataBodyList(clientDataArrayList);
 
         try {
             logger.info("Singleton test clientOTRequest: {}.", objectMapper.writeValueAsString(clientOTRequest));

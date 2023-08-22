@@ -1,6 +1,7 @@
 package cn.webank.wedpr.pir.service;
 
 import cn.webank.wedpr.pir.entity.PirTable;
+import cn.webank.wedpr.pir.mapper.QueryFilterMapper;
 import cn.webank.wedpr.pir.message.ServerOTRequest;
 import cn.webank.wedpr.pir.message.ServerOTResponse;
 import cn.webank.wedpr.pir.message.ServerResultlist;
@@ -23,7 +24,8 @@ public class ServerOTService {
     private static final Logger logger = LoggerFactory.getLogger(ServerOTService.class);
 
     // @Autowired private EntityManager entityManager;
-    @Autowired private QueryFilterService queryFilterService;
+    // @Autowired private QueryFilterService queryFilterService;
+    @Autowired private QueryFilterMapper queryFilterMapper;
 
     public ServerOTResponse runServerOTparam(ServerOTRequest serverOTRequest) throws Exception {
 
@@ -37,22 +39,24 @@ public class ServerOTService {
         BigInteger y = serverOTRequest.getY();
 
         List<ServerResultlist> serverResultlistArrayList = new ArrayList<>();
-        for (int i = 0; i < serverOTRequest.getList().size(); i++) {
+        for (int i = 0; i < serverOTRequest.getDataBodyList().size(); i++) {
             // 需要遍历 List, 获取 z0 and filter
-            BigInteger z0 = serverOTRequest.getList().get(i).getZ0();
-            String filter = serverOTRequest.getList().get(i).getFilter();
+            BigInteger z0 = serverOTRequest.getDataBodyList().get(i).getZ0();
+            String filter = serverOTRequest.getDataBodyList().get(i).getFilter();
             // 根据datasetId和filter，从queryFilterService获取前缀匹配结果
-            List<PirTable> pirTableList = queryFilterService.queryFilterSql(datasetId, filter);
+            // List<PirTable> pirTableList = queryFilterService.queryFilterSql(datasetId, filter);
+            List<PirTable> pirTableList = queryFilterMapper.idFilterTable(datasetId, filter);
             ServerResultlist serverResultlist = new ServerResultlist();
             List<ServerResultBody> serverResultBodyArrayList = new ArrayList<>();
             for (PirTable pirTable: pirTableList) {
                 String uid = pirTable.getPirkey();
-                String message = "";
-                if (serverOTRequest.getJobType().equals("0")) {
-                    message = "True";
-                } else {
-                    message = pirTable.getPirvalue();
-                }
+                // String message = "";
+                // if (serverOTRequest.getJobType().equals("0")) {
+                //     message = "True";
+                // } else {
+                //     message = pirTable.getPirvalue();
+                // }
+                String message = pirTable.getPirvalue();
 
                 // 字符串转字节数组
                 byte[] Uidbytes = uid.getBytes();
@@ -98,12 +102,12 @@ public class ServerOTService {
                 serverResultBody.setC(cipher_str);
                 serverResultBodyArrayList.add(serverResultBody);
             }
-            serverResultlist.setList(serverResultBodyArrayList);
+            serverResultlist.setResultBodyList(serverResultBodyArrayList);
             serverResultlistArrayList.add(serverResultlist);
         }
         
         ServerOTResponse serverOTResponse = new ServerOTResponse();
-        serverOTResponse.setList(serverResultlistArrayList);
+        serverOTResponse.setResultBodyList(serverResultlistArrayList);
         logger.info("Server runServerOTparam success.");
 
         return serverOTResponse;
@@ -118,28 +122,31 @@ public class ServerOTService {
         BigInteger y = serverOTRequest.getY();
 
         List<ServerResultlist> serverResultlistArrayList = new ArrayList<>();
-        for (int i = 0; i < serverOTRequest.getList().size(); i++) {
+        for (int i = 0; i < serverOTRequest.getDataBodyList().size(); i++) {
             // 需要遍历 List, 获取 z0 and idHashList
-            BigInteger z0 = serverOTRequest.getList().get(i).getZ0();
-            List<ClientDataBody> idHashList = serverOTRequest.getList().get(i).getIdHashList();
+            BigInteger z0 = serverOTRequest.getDataBodyList().get(i).getZ0();
+            List<ClientDataBody> idHashList = serverOTRequest.getDataBodyList().get(i).getIdHashList();
 
             ServerResultlist serverResultlist = new ServerResultlist();
             List<ServerResultBody> serverResultBodyArrayList = new ArrayList<>();
             // 根据datasetId和idHashList，从queryFilterService获取匹配结果列表
             // List<PirTable> pirTableList = new ArrayList<>();
             for (int j = 0; j < idHashList.size(); j++) {
-                List<PirTable> pirTableListResult = queryFilterService.queryMatchSql(
+                // List<PirTable> pirTableListResult = queryFilterService.queryMatchSql(
+                //     datasetId, idHashList.get(j).getSearchId());
+                List<PirTable> pirTableListResult = queryFilterMapper.idObfuscationTable(
                     datasetId, idHashList.get(j).getSearchId());
                 // pirTableList.addAll(pirTableListResult);
 
                 for (PirTable pirTable: pirTableListResult) {
                     // String uid = pirTable.getPirkey();
-                    String message = "";
-                    if (serverOTRequest.getJobType().equals("0")) {
-                        message = "True";
-                    } else {
-                        message = pirTable.getPirvalue();
-                    }
+                    // String message = "";
+                    // if (serverOTRequest.getJobType().equals("0")) {
+                    //     message = "True";
+                    // } else {
+                    //     message = pirTable.getPirvalue();
+                    // }
+                    String message = pirTable.getPirvalue();
 
                     // 字符串转字节数组
                     // byte[] Uidbytes = uid.getBytes();
@@ -187,12 +194,12 @@ public class ServerOTService {
                     serverResultBodyArrayList.add(serverResultBody);
                 }
             }
-            serverResultlist.setList(serverResultBodyArrayList);
+            serverResultlist.setResultBodyList(serverResultBodyArrayList);
             serverResultlistArrayList.add(serverResultlist);
         }
         
         ServerOTResponse serverOTResponse = new ServerOTResponse();
-        serverOTResponse.setList(serverResultlistArrayList);
+        serverOTResponse.setResultBodyList(serverResultlistArrayList);
         logger.info("Server serverOTcipher success.");
 
         return serverOTResponse;

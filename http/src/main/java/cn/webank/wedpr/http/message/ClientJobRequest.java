@@ -10,5 +10,5 @@ import lombok.EqualsAndHashCode;
 public class ClientJobRequest extends BaseRequest {
     String searchIp;
     // ClientDataBody clientData;
-    List<ClientDataBody> list;
+    List<ClientDataBody> searchIdList;
 }
