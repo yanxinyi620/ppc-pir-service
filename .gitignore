@@ -62,5 +62,6 @@ out/
 .vscode/
 
 ### personal file ###
+dist/
 logs/
 *myTest.java

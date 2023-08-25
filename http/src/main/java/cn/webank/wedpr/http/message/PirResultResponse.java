@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
 @Data
 public class PirResultResponse extends BaseResponse {
     String jobId;
+    String jobType;
     // List<PirResultBody> detail;
     ClientDecryptResponse detail;
 

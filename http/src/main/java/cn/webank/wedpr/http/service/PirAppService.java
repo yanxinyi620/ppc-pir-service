@@ -75,6 +75,7 @@ public class PirAppService {
 
         PirResultResponse pirResultResponse = new PirResultResponse();
         pirResultResponse.setJobId(clientJobRequest.getJobId());
+        pirResultResponse.setJobType(clientJobRequest.getJobType());
         pirResultResponse.setDetail(clientDecryptResponse);
 
         return pirResultResponse;
@@ -85,7 +86,16 @@ public class PirAppService {
         // 1. 根据请求，筛选数据，加密密钥，返回筛选结果及AES消息密文
         ServerOTRequest serverOTRequest = new ServerOTRequest();
         serverOTRequest.setJobType(serverJobRequest.getJobType());
-        serverOTRequest.setDatasetId(serverJobRequest.getDatasetId());
+        // serverOTRequest.setDatasetId(serverJobRequest.getDatasetId());
+        String datasetId = serverJobRequest.getDatasetId();
+        if (datasetId.length() > pirConfig.getDatasetIdSubstr()) {
+            serverOTRequest.setDatasetId(
+                pirConfig.getDatasetIdPrefix() + datasetId.substring(
+                    datasetId.length() - pirConfig.getDatasetIdSubstr()));
+        } else {
+            serverOTRequest.setDatasetId(
+                pirConfig.getDatasetIdPrefix() + datasetId);
+        }
         serverOTRequest.setX(serverJobRequest.getX());
         serverOTRequest.setY(serverJobRequest.getY());
         serverOTRequest.setDataBodyList(serverJobRequest.getDataBodyList());

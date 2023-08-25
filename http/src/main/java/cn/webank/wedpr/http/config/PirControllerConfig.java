@@ -39,6 +39,12 @@ public class PirControllerConfig {
     @Value("${pms.patch.uri}")
     private String pmsUri;
 
+    @Value("${dataset.id.prefix}")
+    private String datasetIdPrefix;
+
+    @Value("${dataset.id.substring}")
+    private Integer datasetIdSubstr;
+
     @Value("${ssl.on}")
     private Boolean sslOn;
 
@@ -80,6 +86,14 @@ public class PirControllerConfig {
 
     public String getPmsUri() {
         return pmsUri;
+    }
+
+    public String getDatasetIdPrefix() {
+        return datasetIdPrefix;
+    }
+
+    public Integer getDatasetIdSubstr() {
+        return datasetIdSubstr;
     }
 
     public Boolean getSslOn() {

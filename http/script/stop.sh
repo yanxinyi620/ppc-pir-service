@@ -6,7 +6,7 @@ dirpath="$(cd "$(dirname "$0")" && pwd)"
 cd $dirpath
 
 JAVA_HOME=$JAVA_HOME
-APP_MAIN=cn.webank.wedpr.pir.PpcsPirApplication
+APP_MAIN=cn.webank.wedpr.http.PpcsPirApplication
 CURRENT_DIR=`pwd`
 CONF_DIR=${CURRENT_DIR}/conf
 
