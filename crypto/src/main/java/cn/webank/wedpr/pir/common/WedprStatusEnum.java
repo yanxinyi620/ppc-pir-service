@@ -12,12 +12,9 @@ public enum WedprStatusEnum {
     SYSTEM_CONFIG_ERROR("4", "系统配置参数错误"),
     HANDLE_FILE_ERROR("5", "处理文件错误"),
 
-    // 1000 RMB网络错误
-    RMB_TIMEOUT("1000", "RMB超时未响应"),
-    RMB_CALL_ERROR("1001", "RMB调用异常"),
-    RMB_ILLEGAL_ERROR("1002", "RMB无访问权限"),
-    RMB_SEQ_ERROR("1003", "RMB消息业务流水错误"),
-
+    // 1000 未定义错误
+    SYSTEM_EXCEPTION("1000", "系统抛出异常，请检查日志记录"),
+    
     // 2000 参数解析错误
     INVALID_INPUT_VALUE("2000", "输入参数异常"),
     JSON_ERROR("2001", "输入参数JSON解析失败"),
@@ -32,7 +29,8 @@ public enum WedprStatusEnum {
     INVALID_FILE_PATH("2010", "不合法交集文件路径"),
 
     // 3000 db错误
-    DB_TIMEOUT("3000", "DB访问超时"),
+    DB_ERROR("3000", "DB查询失败"),
+    // DB_TIMEOUT("3000", "DB访问超时"),
     DB_INSERT_FAILURE("3001", "DB插入失败"),
     DB_DELETE_FAILURE("3002", "DB删除失败"),
     UNENCRYPTED_DATA("3003", "查询的数据未被加密"),
@@ -43,12 +41,13 @@ public enum WedprStatusEnum {
     INVALID_ENCRYPTION_KEY("4001", "服务端加密密钥异常"),
     SEARCHED_DB_UNAVAILABLE("4002", "服务端db无法访问"),
     HTTP_CALL_ERROR("4003", "HTTP调用异常"),
-    CALL_PSI_ERROR("4004", "调用PSI服务异常"),
+    CALL_PSI_ERROR("4004", "调用PIR服务异常"),
     UPLOAD_FPS_ERROR("4005", "上传文件至Fps失败"),
     DOWNLOAD_FPS_ERROR("4006", "下载Fps文件失败"),
 
     // 5000 密码学运算错误
-    CRYPTO_NORMAL_ERROR("5000", "密码运算通用错误"),
+    AES_ENCRYPT_ERROR("5000", "AES加密明文信息错误"),
+    // CRYPTO_NORMAL_ERROR("5000", "密码运算通用错误"),
     MATCH_RESULT_ERROR("5001", "找不到匹配结果查询值"),
     ENCODE_BIG_NUMBER_ERROR("5002", "转换输入哈希到BIG NUMBER类型失败"),
     DECODE_ECC_POINT_ERROR("5003", "解码密文到椭圆曲线上点失败"),
@@ -56,11 +55,7 @@ public enum WedprStatusEnum {
     CLIENT_CIPHER_ERROR("5005", "计算客户端密文失败"),
     CIPHER_LENGTH_ERROR("5006", "根据前缀索引到的密文太多"),
 
-    CRYPTO_SPE_ERROR("5099", "密码运算通用错误"),
-
-    // 6000 对账分析异常
-    ANALYSIS_RECON_ERROR("6001", "分析交集趋势失败"),
-    INVALID_RECON_FILE_ERROR("6002", "写入交集分析文件失败");
+    CRYPTO_SPE_ERROR("5099", "密码运算通用错误");
 
     private String code;
     private String message;

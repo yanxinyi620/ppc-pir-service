@@ -1,5 +1,6 @@
 package cn.webank.wedpr.http.config;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
@@ -9,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class ResTemplateConfig {
     @Bean
-    public RestTemplate restTemplate(ClientHttpRequestFactory factory) {
+    public RestTemplate restTemplate(@Qualifier("simpleClientHttpRequestFactory") ClientHttpRequestFactory factory) {
         return new RestTemplate(factory);
     }
 

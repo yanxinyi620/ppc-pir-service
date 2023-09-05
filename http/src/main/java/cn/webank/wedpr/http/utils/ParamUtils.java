@@ -30,4 +30,15 @@ public class ParamUtils {
         //     return value;
         // }
     }
+
+    // 定义 DeployMode 枚举类
+    @AllArgsConstructor
+    @Getter
+    public enum DeployMode {
+        PrivateMode(1), 
+        SaasMode(2), 
+        ProxyMode(3);
+
+        private int value;
+    }
 }

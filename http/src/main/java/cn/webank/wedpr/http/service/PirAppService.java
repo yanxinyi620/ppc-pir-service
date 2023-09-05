@@ -81,7 +81,7 @@ public class PirAppService {
         return pirResultResponse;
     }
 
-    public ServerOTResponse providerOtCipher(ServerJobRequest serverJobRequest) throws Exception {
+    public ServerOTResponse providerOtCipher(ServerJobRequest serverJobRequest) throws WedprException {
 
         // 1. 根据请求，筛选数据，加密密钥，返回筛选结果及AES消息密文
         ServerOTRequest serverOTRequest = new ServerOTRequest();

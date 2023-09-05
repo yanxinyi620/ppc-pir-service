@@ -133,14 +133,14 @@ public class HttpUtils {
                 response = Objects.requireNonNull(httpResponse.getBody());
             } else {
                 logger.error(
-                        "发送POST请求失败, url: {}. status: {}, message: {}",
+                        "发送PATCH请求失败, url: {}. status: {}, message: {}",
                         url,
                         statusCode.value(),
                         statusCode.getReasonPhrase());
                 throw new WedprException(WedprStatusEnum.HTTP_CALL_ERROR);
             }
         } catch (HttpClientErrorException e) {
-            logger.error("发送POST请求失败, url: {}", url, e);
+            logger.error("发送PATCH请求失败, url: {}", url, e);
             throw new WedprException(WedprStatusEnum.HTTP_CALL_ERROR);
         }
 

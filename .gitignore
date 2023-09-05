@@ -64,4 +64,5 @@ out/
 ### personal file ###
 dist/
 logs/
+keystore.p12
 *myTest.java

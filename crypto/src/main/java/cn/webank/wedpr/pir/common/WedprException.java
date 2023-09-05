@@ -1,6 +1,6 @@
 package cn.webank.wedpr.pir.common;
 
-@SuppressWarnings("serial")
+// @SuppressWarnings("serial")
 public class WedprException extends Exception {
     /* 错误码类 */
     private final WedprStatusEnum status;

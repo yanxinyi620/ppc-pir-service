@@ -1,5 +1,7 @@
 package cn.webank.wedpr.pir.service;
 
+import cn.webank.wedpr.pir.common.WedprException;
+import cn.webank.wedpr.pir.common.WedprStatusEnum;
 import cn.webank.wedpr.pir.entity.PirTable;
 import cn.webank.wedpr.pir.mapper.QueryFilterMapper;
 import cn.webank.wedpr.pir.message.ServerOTRequest;
@@ -27,7 +29,7 @@ public class ServerOTService {
     // @Autowired private QueryFilterService queryFilterService;
     @Autowired private QueryFilterMapper queryFilterMapper;
 
-    public ServerOTResponse runServerOTparam(ServerOTRequest serverOTRequest) throws Exception {
+    public ServerOTResponse runServerOTparam(ServerOTRequest serverOTRequest) throws WedprException {
 
         logger.info("Server start runServerOTparam.");
 
@@ -43,9 +45,17 @@ public class ServerOTService {
             // 需要遍历 List, 获取 z0 and filter
             BigInteger z0 = serverOTRequest.getDataBodyList().get(i).getZ0();
             String filter = serverOTRequest.getDataBodyList().get(i).getFilter();
-            // 根据datasetId和filter，从queryFilterService获取前缀匹配结果
-            // List<PirTable> pirTableList = queryFilterService.queryFilterSql(datasetId, filter);
-            List<PirTable> pirTableList = queryFilterMapper.idFilterTable(datasetId, filter);
+
+            List<PirTable> pirTableList = new ArrayList<>();
+            try {
+                // 根据datasetId和filter，从queryFilterService获取前缀匹配结果
+                // List<PirTable> pirTableList = queryFilterService.queryFilterSql(datasetId, filter);
+                pirTableList = queryFilterMapper.idFilterTable(datasetId, filter);
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new WedprException(WedprStatusEnum.DB_ERROR);
+            }
+            
             ServerResultlist serverResultlist = new ServerResultlist();
             List<ServerResultBody> serverResultBodyArrayList = new ArrayList<>();
             for (PirTable pirTable: pirTableList) {
@@ -92,14 +102,20 @@ public class ServerOTService {
                 BigInteger message_cipher = key.xor(number);
                 // System.out.println("Key xor Number: " + message_cipher);
 
-                // AES加密
-                String cipher_str = AESEncService.encryptAES(message, keyString);
-                // System.out.println("Encrypted Text: " + cipher_str);
-
                 ServerResultBody serverResultBody = new ServerResultBody();
                 serverResultBody.setE(message_cipher);
                 serverResultBody.setW(w);
-                serverResultBody.setC(cipher_str);
+
+                // AES加密
+                try {
+                    String cipher_str = AESEncService.encryptAES(message, keyString);
+                    // System.out.println("Encrypted Text: " + cipher_str);
+                    serverResultBody.setC(cipher_str);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new WedprException(WedprStatusEnum.AES_ENCRYPT_ERROR);
+                }
+
                 serverResultBodyArrayList.add(serverResultBody);
             }
             serverResultlist.setResultBodyList(serverResultBodyArrayList);
@@ -113,7 +129,7 @@ public class ServerOTService {
         return serverOTResponse;
     }
 
-    public ServerOTResponse serverOTcipher(ServerOTRequest serverOTRequest) throws Exception {
+    public ServerOTResponse serverOTcipher(ServerOTRequest serverOTRequest) throws WedprException {
 
         logger.info("Server start serverOTcipher.");
 
@@ -132,11 +148,18 @@ public class ServerOTService {
             // 根据datasetId和idHashList，从queryFilterService获取匹配结果列表
             // List<PirTable> pirTableList = new ArrayList<>();
             for (int j = 0; j < idHashList.size(); j++) {
-                // List<PirTable> pirTableListResult = queryFilterService.queryMatchSql(
-                //     datasetId, idHashList.get(j).getSearchId());
-                List<PirTable> pirTableListResult = queryFilterMapper.idObfuscationTable(
-                    datasetId, idHashList.get(j).getSearchId());
-                // pirTableList.addAll(pirTableListResult);
+                
+                List<PirTable> pirTableListResult = new ArrayList<>();
+                try {
+                    // List<PirTable> pirTableListResult = queryFilterService.queryMatchSql(
+                    //     datasetId, idHashList.get(j).getSearchId());
+                    pirTableListResult = queryFilterMapper.idObfuscationTable(
+                        datasetId, idHashList.get(j).getSearchId());
+                    // pirTableList.addAll(pirTableListResult);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new WedprException(WedprStatusEnum.DB_ERROR);
+                }
 
                 for (PirTable pirTable: pirTableListResult) {
                     // String uid = pirTable.getPirkey();
@@ -183,14 +206,20 @@ public class ServerOTService {
                     BigInteger message_cipher = key.xor(number);
                     // System.out.println("Key xor Number: " + message_cipher);
 
-                    // AES加密
-                    String cipher_str = AESEncService.encryptAES(message, keyString);
-                    // System.out.println("Encrypted Text: " + cipher_str);
-
                     ServerResultBody serverResultBody = new ServerResultBody();
                     serverResultBody.setE(message_cipher);
                     serverResultBody.setW(w);
-                    serverResultBody.setC(cipher_str);
+
+                    // AES加密
+                    try {
+                        String cipher_str = AESEncService.encryptAES(message, keyString);
+                        // System.out.println("Encrypted Text: " + cipher_str);
+                        serverResultBody.setC(cipher_str);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        throw new WedprException(WedprStatusEnum.AES_ENCRYPT_ERROR);
+                    }
+
                     serverResultBodyArrayList.add(serverResultBody);
                 }
             }
