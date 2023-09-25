@@ -42,6 +42,8 @@ public class ClientOTService {
     public ClientOTResponse runClientOTparam(ClientOTRequest clientOTRequest) throws WedprException {
 
         logger.info("Client start runClientOTparam.");
+        // hash披露, 请求方选择id，生成随机数a、b
+        // 计算x=g^a,y=g^b,c_{id_{\delta}}=ab,z_{\delta}=g^{c_\delta},z_0=g^{c_{id_{\delta}}-id_{\delta}}
 
         int filterLength = clientOTRequest.getFilterLength();
         BigInteger blinding_a = CryptoService.getRandomInt();
@@ -82,6 +84,8 @@ public class ClientOTService {
     public ClientOTResponse clientOTcipher(ClientOTRequest clientOTRequest) throws WedprException {
 
         logger.info("Client start clientOTcipher.");
+        // hash筛选, 请求方选择顺序\delta\in \{0,1,..,m-1\}，生成随机数a、b
+        // 计算x=g^a,y=g^b,c_{\delta}=ab,z_{\delta}=g^{c_\delta},z_0=g^{c_{\delta}-\delta}
 
         int obfuscationOrder = clientOTRequest.getObfuscationOrder();
         BigInteger blinding_a = CryptoService.getRandomInt();

@@ -20,6 +20,8 @@ public class ClientDecryptService {
     public ClientDecryptResponse runDecryptOTparam(ClientDecryptRequest clientDecryptRequest) throws Exception {
 
         logger.info("Client start runDecryptOTparam.");
+        // 请求方遍历所有id, w_{\delta}^b=x^{s_{\delta}b}g^{r_{\delta}b}=w_i^b, m_i=w_{\delta}^b\oplus E_i
+        // 使用M_i解密C_i，得到明文S_i
 
         ClientDecryptResponse clientDecryptResponse = new ClientDecryptResponse();
 
@@ -77,6 +79,7 @@ public class ClientDecryptService {
     public ClientDecryptResponse decryptOTcipher(ClientDecryptRequest clientDecryptRequest) throws Exception {
 
         logger.info("Client start decryptOTcipher.");
+        // 请求方计算第\delta个结果, w_{\delta}^b=x^{s_{\delta}b}g^{r_{\delta}b}, m_i=w_{\delta}^b\oplus E_i
 
         ClientDecryptResponse clientDecryptResponse = new ClientDecryptResponse();
 

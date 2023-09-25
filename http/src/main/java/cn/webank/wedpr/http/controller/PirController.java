@@ -184,7 +184,8 @@ public class PirController {
             clientResponse.setData(otResultResponse);
 
             // 调用web服务，保存匿踪参与任务
-            if (pirConfig.getDeployMode() == DeployMode.PrivateMode.getValue()) {
+            if (pirConfig.getDeployMode() == DeployMode.PrivateMode.getValue() && 
+                    serverJobRequest.getJobCreatorAgencyId()!=serverJobRequest.getParticipateAgencyId()) {
                 JobRequest jobRequest = new JobRequest();
                 jobRequest.setJobId(serverJobRequest.getJobId());
                 jobRequest.setJobTitle("PPC-AYS-Title");

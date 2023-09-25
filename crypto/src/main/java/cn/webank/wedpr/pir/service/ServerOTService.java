@@ -32,6 +32,8 @@ public class ServerOTService {
     public ServerOTResponse runServerOTparam(ServerOTRequest serverOTRequest) throws WedprException {
 
         logger.info("Server start runServerOTparam.");
+        // 数据方为每个匹配到的消息密钥m_i，选择随机数(r_i,s_i)
+        // 计算w_i=x^{s_i}g^{r_i},key=z_i^{s_i}y_i^{r_i},z_{i}=z_\cdot g^{id_i} \\ 加密消息E_i=key \oplus m_i
 
         // HBasePrefixQuery.hbaseFilter();
         // logger.info("Server end HBasePrefixQuery.");
@@ -132,6 +134,9 @@ public class ServerOTService {
     public ServerOTResponse serverOTcipher(ServerOTRequest serverOTRequest) throws WedprException {
 
         logger.info("Server start serverOTcipher.");
+        // 数据方为每个消息m_i，选择随机数(r_i,s_i)
+        // 计算w_i=x^{s_i}g^{r_i},key=z_i^{s_i}y_i^{r_i},z_{i+1}=z_i\cdot g 
+        // 加密消息E_i=key \oplus m_i
 
         String datasetId = serverOTRequest.getDatasetId();
         BigInteger x = serverOTRequest.getX();
