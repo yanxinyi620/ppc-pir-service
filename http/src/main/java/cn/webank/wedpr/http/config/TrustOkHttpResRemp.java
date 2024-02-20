@@ -27,7 +27,10 @@ public class TrustOkHttpResRemp {
 
     private static final Logger logger = LoggerFactory.getLogger(TrustOkHttpResRemp.class);
 
-    @Value("${server.ssl.key-store-password}")
+    @Value("${ssl.on}")
+    private Boolean sslOn;
+
+    @Value("${client.ssl.key-store-password}")
     private String jksPassword;
 
     @Value("${client.ssl.key-store}")
@@ -42,35 +45,44 @@ public class TrustOkHttpResRemp {
 
     @Bean
     public RestTemplate trustOkHttpTemp(@Qualifier("clientHttpRequestFactory") ClientHttpRequestFactory factory) {
-        return new RestTemplate(factory);
+        if (sslOn) {
+            return new RestTemplate(factory);
+        }
+        return new RestTemplate(new OkHttp3ClientHttpRequestFactory());
     }
 
     @Bean(name = "clientHttpRequestFactory")
     public ClientHttpRequestFactory clientHttpRequestFactory() throws Exception {
-        return new OkHttp3ClientHttpRequestFactory(okHttpClient());
+        if (sslOn) {
+            return new OkHttp3ClientHttpRequestFactory(okHttpClient());
+        }
+        return new OkHttp3ClientHttpRequestFactory();
     }
 
     @Bean
     public OkHttpClient okHttpClient() throws Exception {
 
-        // 加载 JKS 证书文件
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        try (InputStream keystoreStream = new FileInputStream(keystoreRelativePath)) {
-            keyStore.load(keystoreStream, jksPassword.toCharArray());
+        if (sslOn) {
+            // 加载 JKS 证书文件
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            try (InputStream keystoreStream = new FileInputStream(keystoreRelativePath)) {
+                keyStore.load(keystoreStream, jksPassword.toCharArray());
+            }
+
+            // 创建 TrustManager，使用上述的 KeyStore
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keyStore);
+
+            // 创建 SSLContext，使用上述的 TrustManager
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+
+            return new OkHttpClient.Builder()
+                .sslSocketFactory(sslContext().getSocketFactory(), (X509TrustManager) trustManagerFactory.getTrustManagers()[0])
+                .connectionPool(new ConnectionPool())
+                .build();
         }
-
-        // 创建 TrustManager，使用上述的 KeyStore
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(keyStore);
-
-        // 创建 SSLContext，使用上述的 TrustManager
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
-
-        return new OkHttpClient.Builder()
-            .sslSocketFactory(sslContext().getSocketFactory(), (X509TrustManager) trustManagerFactory.getTrustManagers()[0])
-            .connectionPool(new ConnectionPool())
-            .build();
+        return null;
     }
 
     @Bean

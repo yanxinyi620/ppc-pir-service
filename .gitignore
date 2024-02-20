@@ -65,4 +65,8 @@ out/
 dist/
 logs/
 keystore.p12
+keystore.jks
+truststore.jks
+server.crt
+trustkey.md
 *myTest.java
